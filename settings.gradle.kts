@@ -3,3 +3,5 @@ plugins {
 }
 
 rootProject.name = "IntelliJ Platform Plugin Template"
+include("src:main:java")
+findProject(":src:main:java")?.name = "java"
