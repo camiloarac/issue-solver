@@ -1,16 +1,23 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import java.io.FileInputStream
+import java.util.*
+
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
     id("java") // Java support
-    alias(libs.plugins.kotlin) // Kotlin support
-    alias(libs.plugins.gradleIntelliJPlugin) // Gradle IntelliJ Plugin
-    alias(libs.plugins.changelog) // Gradle Changelog Plugin
-    alias(libs.plugins.qodana) // Gradle Qodana Plugin
-    alias(libs.plugins.kover) // Gradle Kover Plugin
+    id("codegpt.java-conventions")
+    id("org.jetbrains.changelog") version "2.2.0"
+
+    id(libs.plugins.kotlin.get().pluginId) version '1.6.10' // Kotlin support
+    id(libs.plugins.gradleIntelliJPlugin.get().pluginId) // Gradle IntelliJ Plugin
+//    alias(libs.plugins.changelog) // Gradle Changelog Plugin
+    id(libs.plugins.qodana.get().pluginId) // Gradle Qodana Plugin
+    id(libs.plugins.kover.get().pluginId) // Gradle Kover Plugin
 }
 
 group = properties("pluginGroup").get()
@@ -19,11 +26,32 @@ version = properties("pluginVersion").get()
 // Configure project's dependencies
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
 //    implementation(libs.annotations)
+  implementation(project(":codegpt-core"))
+  implementation(project(":codegpt-telemetry"))
+
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.16.0")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0")
+  implementation("com.vladsch.flexmark:flexmark-all:0.64.8") {
+    // vulnerable transitive dependency
+    exclude(group = "org.jsoup", module = "jsoup")
+  }
+  implementation("org.jsoup:jsoup:1.16.2")
+  implementation("org.apache.commons:commons-text:1.11.0")
+  implementation("com.knuddels:jtokkit:0.6.1")
+  implementation("org.quartz-scheduler:quartz:2.3.2")
+
+  testImplementation("org.assertj:assertj-core:3.24.2")
+  testImplementation("org.awaitility:awaitility:4.2.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.1")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.1")
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
@@ -72,6 +100,14 @@ tasks {
     wrapper {
         gradleVersion = properties("gradleVersion").get()
     }
+    
+  verifyPlugin {
+    enabled = true
+  }
+
+  runPluginVerifier {
+    enabled = true
+  }
 
     patchPluginXml {
         version = properties("pluginVersion")
@@ -119,6 +155,10 @@ tasks {
         privateKey = environment("PRIVATE_KEY")
         password = environment("PRIVATE_KEY_PASSWORD")
     }
+    
+  buildPlugin {
+    enabled = true
+  }
 
     publishPlugin {
         dependsOn("patchChangelog")
@@ -128,4 +168,19 @@ tasks {
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels = properties("pluginVersion").map { listOf(it.split('-').getOrElse(1) { "default" }.split('.').first()) }
     }
+    
+  runIde {
+    enabled = true
+    environment("ENVIRONMENT", "LOCAL")
+  }
+
+  test {
+    exclude("**/testsupport/*")
+    useJUnitPlatform()
+    testLogging {
+      events("started", "passed", "skipped", "failed")
+      exceptionFormat = TestExceptionFormat.FULL
+      showStandardStreams = true
+    }
+  }
 }

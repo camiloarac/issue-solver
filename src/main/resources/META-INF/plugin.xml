@@ -1,4 +1,6 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+
+<!--
 <idea-plugin>
     <id>org.jetbrains.plugins.template</id>
     <name>Issue Solver</name>
@@ -15,4 +17,61 @@
     <applicationListeners>
         <listener class="org.jetbrains.plugins.template.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
+</idea-plugin>
+-->
+
+<idea-plugin>
+    <id>ee.carlrobert.chatgpt</id>
+    <name>CodeGPT</name>
+    <vendor email="carlrobertoh@gmail.com" url="https://carlrobert.ee">Carl-Robert Linnupuu</vendor>
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="ee.carlrobert.codegpt.PluginStartupActivity"/>
+        <applicationConfigurable id="settings.codegpt" parentId="tools" displayName="CodeGPT"
+            instance="ee.carlrobert.codegpt.settings.SettingsConfigurable"/>
+        <applicationConfigurable id="settings.codegpt.configuration" parentId="settings.codegpt" displayName="Configuration"
+            instance="ee.carlrobert.codegpt.settings.configuration.ConfigurationConfigurable"/>
+        <applicationConfigurable id="settings.codegpt.advanced" parentId="settings.codegpt" displayName="Advanced Settings"
+            instance="ee.carlrobert.codegpt.settings.advanced.AdvancedSettingsConfigurable"/>
+        <applicationConfigurable
+          parentId="tools"
+          instance="ee.carlrobert.codegpt.telemetry.ui.preferences.TelemetryConfigurable"
+          id="tools.preferences.codegpt.telemetry"
+          displayName="CodeGPT Telemetry"/>
+        <applicationService
+          serviceImplementation="ee.carlrobert.codegpt.telemetry.core.service.TelemetryServiceFactory"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.state.SettingsState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.state.AzureSettingsState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.state.OpenAISettingsState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.state.YouSettingsState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.state.LlamaSettingsState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.configuration.ConfigurationState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.settings.advanced.AdvancedSettingsState"/>
+        <applicationService serviceImplementation="ee.carlrobert.codegpt.conversations.ConversationsState"/>
+        <toolWindow id="CodeGPT" icon="ee.carlrobert.codegpt.Icons.DefaultSmallIcon" anchor="right"
+            factoryClass="ee.carlrobert.codegpt.toolwindow.ProjectToolWindowFactory"/>
+        <notificationGroup id="CodeGPT Notification Group" displayType="BALLOON" key="notification.group.name"/>
+    </extensions>
+
+    <resource-bundle>messages.codegpt</resource-bundle>
+
+    <actions>
+        <group id="CodeGPTEditorPopup">
+            <group id="action.editor.group.EditorActionGroup"
+                text="CodeGPT"
+                class="com.intellij.openapi.actionSystem.DefaultActionGroup"
+                popup="true"
+                icon="ee.carlrobert.codegpt.Icons.DefaultSmallIcon">
+            </group>
+            <add-to-group group-id="EditorPopupMenu1" anchor="first"/>
+            <separator/>
+        </group>
+        <group id="CodeGPT.GenerateGitCommitMessageGroup">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
+            <action
+              id="CodeGPT.GenerateGitCommitMessage"
+              class="ee.carlrobert.codegpt.actions.GenerateGitCommitMessageAction" />
+        </group>
+    </actions>
 </idea-plugin>
