@@ -1,11 +1,13 @@
 package org.jetbrains.plugins.template;
 
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.service.OpenAiService;
 import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.image.CreateImageRequest;
+import io.reactivex.Flowable;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -14,8 +16,9 @@ import java.util.List;
 
 public class MyOpenAIRequest {
 
+    private String response;
     public MyOpenAIRequest(String requestText) {
-        String token = "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";
+        String token = "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";
         OpenAiService service = new OpenAiService(token, Duration.ofSeconds(30));
 
         System.out.println("Streaming chat completion...");
@@ -31,9 +34,24 @@ public class MyOpenAIRequest {
                 .logitBias(new HashMap<>())
                 .build();
 
-        service.streamChatCompletion(chatCompletionRequest)
-                .doOnError(Throwable::printStackTrace)
-                .blockingForEach(System.out::println);
+        Flowable<ChatCompletionChunk> flowableResult = service.streamChatCompletion(chatCompletionRequest);
+        // Create a StringBuilder object to store the result
+        StringBuilder buffer = new StringBuilder();
+        // Subscribe to the Flowable object and print the result
+        flowableResult.subscribe(chunk -> {
+            chunk.getChoices().forEach(choice -> {
+                String result = choice.getMessage().getContent();
+                if (result != null) {
+                    buffer.append(result);
+                    System.out.print(choice.getMessage().getContent());
+                }
+            });
+        }, Throwable::printStackTrace, () -> System.out.println());
+        response = buffer.toString();
+    }
+
+    public String getResponse() {
+        return response;
     }
 
 }

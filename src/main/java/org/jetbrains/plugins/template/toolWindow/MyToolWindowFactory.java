@@ -57,7 +57,7 @@ public class MyToolWindowFactory implements ToolWindowFactory {
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
             MyGitConnection myGitConnection = new MyGitConnection();
-
+            String requestText = "";
             try {
                 List<GHIssue> myIssues = myGitConnection.getRepo().getIssues(GHIssueState.OPEN);
                 for(GHIssue issue : myIssues) {
@@ -67,8 +67,8 @@ public class MyToolWindowFactory implements ToolWindowFactory {
                                 + ", developer: " + issue.getAssignee().getLogin();
                     addPanel(text, panel);
                     if (issue.getNumber() == 4) {
-                        String requestText = issue.getBody();
-                        MyOpenAIRequest myOpenAIRequest = new MyOpenAIRequest(requestText);
+                         requestText = issue.getBody();
+
                         // MyOpenAIRequest myOpenAIRequest = new MyOpenAIRequest("You are a dog and will speak as such.");
                     }
 
@@ -77,7 +77,12 @@ public class MyToolWindowFactory implements ToolWindowFactory {
                 e.printStackTrace();
             }
 
-
+            MyOpenAIRequest myOpenAIRequest = new MyOpenAIRequest(requestText);
+            JBPanel responsePanel = new JBPanel<>();
+            JBLabel responseLabel = new JBLabel(myOpenAIRequest.getResponse());
+            responsePanel.add(responseLabel);
+            panel.add(responsePanel);
+            System.out.println(myOpenAIRequest.getResponse());
             return panel;
         }
 

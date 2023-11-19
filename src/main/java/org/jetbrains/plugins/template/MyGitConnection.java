@@ -11,7 +11,7 @@ public class MyGitConnection {
     private GHRepository repo;
     public MyGitConnection() {
         try {
-            github = new GitHubBuilder().withOAuthToken("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","camiloarac").build();
+            github = new GitHubBuilder().withOAuthToken("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","camiloarac").build();
             repo = github.getRepository("camiloarac/issue-solver");
         } catch (IOException e) {
             e.printStackTrace();
