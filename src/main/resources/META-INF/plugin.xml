@@ -6,10 +6,11 @@
 
     <depends>com.intellij.modules.platform</depends>
 
+
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="Git Platform Issue Solver"/>
     </extensions>
 
     <applicationListeners>
